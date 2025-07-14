@@ -1,0 +1,87 @@
+{
+  "title": "< your virus > - Nextclade dataset tree",
+  "build_url": "https://github.com/hodcroftlab/...",
+  "maintainers": [
+    { "name": "Author", "url": "< URL >" },
+    { "name": "Emma Hodcroft", "url": "http://emmahodcroft.com/" }
+  ],
+  "extensions": {
+    "nextclade": {
+      "ref_nodes": {
+        "default": "__root__",
+        "search": [
+          {
+            "name": "< RefSeq accession >",
+            "displayName": "< RefSeq name for display >",
+            "description": "Commonly used reference strain.",
+            "criteria": [
+              {
+                "node": [
+                  {
+                    "name": ["< RefSeq accession >"]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "Inferred root",
+            "displayName": "Tree root",
+            "description": "Inferred root from ancestral traits.",
+            "criteria": [
+              {
+                "node": [
+                  {
+                    "name": ["NODE_0000000"]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "colorings": [
+    {
+      "title": "Clade",
+      "type": "categorical",
+      "key": "clade_membership"
+    },
+    {
+      "title": "Collection Date",
+      "type": "categorical",
+      "key": "date"
+    },
+    {
+      "title": "Country",
+      "type": "categorical",
+      "key": "country"
+    },
+    {
+      "title": "Global Region",
+      "type": "categorical",
+      "key": "region"
+    }
+  ],
+  "geo_resolutions": [
+    "country", "region"
+  ],
+  "filters": [
+    "country",
+    "region",
+    "clade_membership"
+  ],
+  "display_defaults": {
+    "color_by": "clade_membership",
+    "geo_resolution": "country",
+    "tip_label": "strain",
+    "branch_label": "clade",
+    "map_triplicate": true
+  },
+  "panels": [
+    "tree",
+    "map",
+    "entropy"
+  ]
+}
