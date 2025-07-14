@@ -46,7 +46,13 @@ Modify `resources/auspice_config.json` to:
 - Modify `title`, `build_url`, `maintainers`
 
 This file is created to have the following options for mutation calling:
-[![Options](./image.png)]
+
+![Options](./image.png)
+
+Where:
+- Reference: Static inferred root
+- < your RefSeq id >: Commonly used reference
+- Tree root: Inferred root for the tree (can change every run)
 
 ---
 ### 5. Update the `Snakefile`
