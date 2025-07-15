@@ -17,6 +17,9 @@ Those steps were developed specifically for this dataset, having the following s
 - The reference used is a static inferred root.
 - The annotation file GFF might need to be adapted to this new reference.
 
+> 💡 **Note:** If you don't want to use the inferred root as reference, you can replace the files `./dataset/genome_annotation.gff3` and `./dataset/reference.fasta` with your desired reference.
+> You can still use the `resources/auspice_config.json` to get a set of references for mutation calling in the dataset.
+
 ---
 ### 1. Follow the instructions from the `inferred-root` README.md
 Follow the instructions found in the `inferred-root` README.md to obtain a static inferred root.
