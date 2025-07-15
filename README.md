@@ -13,9 +13,9 @@ git clone https://github.com/hodcroftlab/dataset-template-inferred-root.git
 ---
 ## Steps to Set Up The Workflow
 
-Those steps were developed specifically for this dataset, having the following specific features:
+These steps were developed specifically for this dataset, which has the following characteristics:
 - The reference used is a static inferred root.
-- The annotation file GFF might need to be adapted to this new reference.
+- The GFF annotation file may need to be adapted to this new reference. 
 
 > 💡 **Note:** If you don't want to use the inferred root as reference, you can replace the files `./dataset/genome_annotation.gff3` and `./dataset/reference.fasta` with your desired reference.
 > You can still use the `resources/auspice_config.json` to get a set of references for mutation calling in the dataset.
@@ -45,7 +45,7 @@ For more details on configuration, refer to the [Nextclade documentation](https:
 ---
 ### 4. Update `auspice_config.json`
 Modify `resources/auspice_config.json` to:
-- Ensure the RefSeq node matches the reference sequence of your virus
+- Ensure the RefSeq node matches your virus's reference sequence
 - Modify `title`, `build_url`, `maintainers`
 
 This file is created to have the following options for mutation calling:
