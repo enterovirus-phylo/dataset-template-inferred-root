@@ -2,6 +2,8 @@
 
 This repository provides a streamlined setup for running Nextclade on < your virus > sequences using an inferred root sequence as the reference. It includes all necessary files and instructions to customize and run Nextclade analysis.
 
+> ⚠️ **Warning:** This template sets the inferred root as the main reference. For the moment, we should set the inferred root as al alternative and the RefSeq as the main reference!
+
 ## Clone the repository
 
 First, clone this repository to get all the necessary files to create your dataset:
