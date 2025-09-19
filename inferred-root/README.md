@@ -1,90 +1,62 @@
-# Nextclade Setup for getting the inferred root
+# Inferred Ancestral Root Sequence for <your virus>
 
-This repository contains the workflow for generating an inferred root sequence for < your virus > to be used as a reference in Nextclade analyses. 
+This repository provides a reproducible workflow for generating an inferred ancestral ("root") sequence for <your virus>, designed for use as a custom reference in [Nextclade](https://clades.nextstrain.org/) analyses.
 
-## Folder/Files Structure
 
-This folder has the following structure:
+## Overview
 
-- scripts
-  - `generate_from_genbank.py`
-- ingest
-  - bin
-  - config
-  - source-data
-  - workflow
-  - `README.md`
-  - `snakefile`
-- resources
-  - `accession_strains.tsv`
-  - `auspice_config.json`
-  - `clades.tsv`
-  - `include.txt`
-  - `exclude.txt`
-- dataset
- - `CHANGELOG.md`
- - `pathogen.json`
- - `README.md`
+Phylogenetic analyses, such as those performed by Nextclade and Augur, benefit from a high-quality, dataset-representative reference sequence. This workflow infers such a root by reconstructing the ancestral sequence from your entire  dataset, allowing for more accurate mutation and clade assignments.
 
----
-## Steps to Set Up The Workflow
+**Workflow summary:**
+1. **Phylogenetic Tree Construction:** All sequences in the provided dataset are aligned and a maximum-likelihood tree is built.
+2. **Ancestral Sequence Inference:** The [Augur](https://github.com/nextstrain/augur) toolkit is used to infer the ancestral (root) sequence, labeled `NODE_0000000` in the output FASTA.
+3. **Gap Correction:** The script [`fix_root_gaps.py`](scripts/fix_root_gaps.py) replaces any gaps (`-`) or ambiguous bases (`N`) in the inferred root with the corresponding reference nucleotides, ensuring a contiguous and biologically plausible root sequence. *For some viruses, it may make more sense to use the most common nucleotide in the alignment — please adapt the script for your needs.*
+4. **Export:** The cleaned ancestral root FASTA is available for use as a custom reference in Nextclade. The corresponding metadata is also provided and should be kept in sync.
 
-### 1. Run the `ingest` snakefile
-The instructions are detailed in the README.md (located in `ingest/`).
-This will create a folder named `data/` in the main directory, containing the sequences (`sequences.fasta`) and associated metadata fields (`metadata.tsv`), needed for obtaining the inferred root.
 
-Check that the files obtained in `data/references` have the appropiate names in the fields `/product=` and `/locus_tag=`, keeping just the name of the protein, without extra words (for example, 'VP4 protein' should be kept as 'VP4').
+## Getting Started
+### Running the Workflow
 
----
-### 2. Copy the references obtained through the `ingest` workflow
+To generate the inferred ancestral root:
 
-Once you have run the `ingest` workflow and are back at the `inferred-root` folder, run:
-
-```bash
-cp ./ingest/data/references/annotation.gff3 ./dataset/genome_annotation.gff3
-cp ./ingest/data/references/reference.fasta ./dataset/reference.fasta
-cp ./ingest/data/references/reference.gbk ./resources/reference.gbk
-```
-
----
-### 3. Update `pathogen.json`
-Modify `dataset/pathogen.json` to:
-- Ensure file names match the generated reference files.
-- Update attributes as needed.
-- Adjust the Quality Control (QC) settings if necessary. If QC is not configured, Nextclade will not perform any checks.
-
-For more details on configuration, refer to the [Nextclade documentation](https://docs.nextstrain.org/projects/nextclade/en/latest/user/input-files/05-pathogen-config.html).
-
----
-### 4. Prepare `resources/reference.gbk`
-- Modify protein names as needed to match your requirements.
-
----
-### 5. Update the `Snakefile`
-- Modify lines 1-18 to adjust paths and parameters.
-- Ensure all necessary files for the Augur pipeline are present, including:
-  - `sequences.fasta` & `metadata.tsv` 
-    - can be downloaded from NCBI Virus via ingest: `FETCH_SEQUENCES==True`
-  - [`auspice_config.json`](resources/auspice_config.json)
-- These files are essential for building the reference tree and running Nextclade.
-
----
-
-## Runnning the `Snakefile`
-To create the auspice JSON and a Nextclade example dataset:
 ```bash
 snakemake --cores 9 all
 ```
 
-## Getting the inferred root
-To create the static inferred root, extract the sequence named `>NODE_0000000`, from `./results/ancestral_sequences.fasta`.
+This will:
+- Build a phylogenetic tree and infer the ancestral root
+- Extract and gap-correct the root sequence (`NODE_0000000`)
+- Output a finalized FASTA and updated metadata
 
-```bash
-seqkit grep -p "NODE_0000000" ./results/ancestral_sequences.fasta > ./results/inferred-root.fasta
-```
+### Output Files
 
-If there are gaps, you can infer their states visualizing the files auspice.json and auspice_root-sequence.json in [auspice](auspice.us/). Replace the gaps with the more common nucleotide of the dataset. 
+- `results/ancestral_sequences.fasta`: All inferred ancestral sequences (from Augur)
+- `resources/inferred_root.fasta`: Gap-corrected ancestral root sequence
 
-If there is a gap caused by an insertion in the 'RefSeq' used for obtaining this first approach (i. e. the same gap is present in all the sequences except the 'RefSeq', as found for Coxsackievirus A10), you will need to adjust the `dataset/genome_annotation.gff3` of the final dataset to the new coordinates, creating a new file with `start=start-X` and `end=end-X`, where `X` is the number fo gaps before the starting point of the polyprotein. For example, if there is a 3-gap in the 5'UTR, not affecting the amino acid positions, you can adjust the coordinates of the file creating a new file with `start=start-3` and `end=end-3`.
 
-Save the final annotation file with the adjusted coordinates (if needed) to `results/inferred-root-annotation.gff3`.
+## Updating the Ancestral Root or Metadata
+
+If you update your dataset or rerun the workflow:
+- **Be sure to also update the corresponding [metadata file](../resources/static_inferred_root_metadata.tsv)**  to match the new root sequence.
+- Record the date of the latest update (see below).
+
+**Latest root sequence generated:**  
+📅 ...
+
+
+---
+## FAQ
+
+**Q: Why use a static inferred root for Nextclade?**  
+A: Using an inferred ancestral root sequence representative of your dataset improves mutation calling and clade assignment, especially for highly variable viruses like Enteroviruses.
+
+**Q: How is the root sequence cleaned?**  
+A: Gaps or ambiguous bases in the inferred root are replaced positionally with nucleotides from the reference sequence using [`fix_root_gaps.py`](scripts/fix_root_gaps.py). For some viruses (e.g., CVA10), it may be preferable to use the most common nucleotide at each position — please adapt the script as needed!
+
+**Q: Can I use this approach for other enteroviruses?**  
+A: Yes! For a ready-to-use template, see [enterovirus-phylo/dataset-template-inferred-root](https://github.com/enterovirus-phylo/dataset-template-inferred-root).
+
+## Author & Contact
+
+- Maintainers: Nadia Neuner-Jehle, Alejandra Gonzalez Sanchez and Emma B. Hodcroft ([hodcroftlab](https://github.com/hodcroftlab))
+- For questions or suggestions, please write an email: eve-group[at]swisstph.ch
