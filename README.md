@@ -1,6 +1,6 @@
-# Nextclade Workflow for &lt;your virus&gt;
+# Nextclade Workflow for <your virus>
 
-This repository provides a robust, reproducible workflow for building a custom [Nextclade](https://github.com/nextstrain/nextclade) dataset for &lt;your virus&gt;. It enables you to generate reference and annotation files, download and process sequence data, infer an ancestral root, and create all files needed for Nextclade analyses and visualization.
+This repository provides a robust, reproducible workflow for building a custom [Nextclade](https://github.com/nextstrain/nextclade) dataset for <your virus>. It enables you to generate reference and annotation files, download and process sequence data, infer an ancestral root, and create all files needed for Nextclade analyses and visualization.
 
 ---
 
@@ -38,7 +38,7 @@ This workflow includes several modular steps:
 Run the script to extract the reference FASTA and genome annotation from GenBank:
 
 ```bash
-python3 scripts/generate_from_genbank.py --reference "&lt;accession_id&gt;" --output-dir dataset/
+python3 scripts/generate_from_genbank.py --reference "<accession_id>" --output-dir dataset/
 ```
 
 During execution, follow the prompts for CDS annotation selection.
@@ -85,7 +85,7 @@ Sequences and metadata can be downloaded automatically via the ingest process (s
 
 ### Ingest
 
-Automates downloading of &lt;your virus&gt; sequences and metadata from NCBI Virus.  
+Automates downloading of EV sequences and metadata from NCBI Virus.  
 See [ingest/README.md](ingest/README.md) for specifics.
 
 **Required packages:**  
@@ -118,11 +118,12 @@ Edit `resources/auspice_config.json` to:
 
 This enables three reference options for mutation calling:  
 
-- **Reference** → Static inferred root  
-- **RefSeq/Accession id** → Commonly used reference sequence  
+- **Reference** → RefSeq or commonly used reference sequence
+- **Static Ancestral Root** → Ancestral sequence from `inferred-root` workflow; run only once
 - **Tree root** → Tree-based root (changes with every re-run)  
 
 *Example reference selector UI:*
+
 ![Options](./image.png)
 
 ---
@@ -175,4 +176,4 @@ https://master.clades.nextstrain.org/?dataset-url=http://localhost:3000
 
 ---
 
-This guide provides a structured, scalable approach to building and using high-quality Nextclade datasets for &lt;your virus&gt; — and can be adapted for other enterovirus types as well.
+This guide provides a structured, scalable approach to building and using high-quality Nextclade datasets for <your virus> — and can be adapted for other enterovirus types as well.
