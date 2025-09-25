@@ -1,6 +1,6 @@
-# Nextclade Workflow for <your virus>
+# Nextclade Workflow for &lt;your virus&gt;
 
-This repository provides a robust, reproducible workflow for building a custom [Nextclade](https://github.com/nextstrain/nextclade) dataset for <your virus>. It enables you to generate reference and annotation files, download and process sequence data, infer an ancestral root, and create all files needed for Nextclade analyses and visualization.
+This repository provides a robust, reproducible workflow for building a custom [Nextclade](https://github.com/nextstrain/nextclade) dataset for &lt;your virus&gt;. It enables you to generate reference and annotation files, download and process sequence data, infer an ancestral root, and create all files needed for Nextclade analyses and visualization.
 
 ---
 
@@ -176,4 +176,4 @@ https://master.clades.nextstrain.org/?dataset-url=http://localhost:3000
 
 ---
 
-This guide provides a structured, scalable approach to building and using high-quality Nextclade datasets for <your virus> — and can be adapted for other enterovirus types as well.
+This guide provides a structured, scalable approach to building and using high-quality Nextclade datasets for your specific Enterovirus — and can be adapted for other enterovirus types as well.

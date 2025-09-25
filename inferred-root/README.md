@@ -1,6 +1,6 @@
-# Inferred Ancestral Root Sequence for <your virus>
+# Inferred Ancestral Root Sequence for &lt;your virus&gt;
 
-This repository provides a reproducible workflow for generating an inferred ancestral ("root") sequence for <your virus>, designed for use as a custom reference in [Nextclade](https://clades.nextstrain.org/) analyses.
+This repository provides a reproducible workflow for generating an inferred ancestral ("root") sequence for &lt;your virus&gt;, designed for use as a custom reference in [Nextclade](https://clades.nextstrain.org/) analyses.
 
 
 ## Overview
