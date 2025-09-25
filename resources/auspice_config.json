@@ -3,7 +3,7 @@
   "build_url": "https://github.com/hodcroftlab/...",
   "maintainers": [
     { "name": "Author", "url": "< URL >" },
-    { "name": "Emma Hodcroft", "url": "http://emmahodcroft.com/" }
+    { "name": "Emma B. Hodcroft", "url": "http://emmahodcroft.com/" }
   ],
   "extensions": {
     "nextclade": {
@@ -11,14 +11,14 @@
         "default": "__root__",
         "search": [
           {
-            "name": "< RefSeq accession >",
-            "displayName": "< RefSeq name for display >",
-            "description": "Commonly used reference strain.",
+            "name": "Static ancestral root",
+            "displayName": "Static ancestral root",
+            "description": "Inferred ancestral root [not changing]",
             "criteria": [
               {
                 "node": [
                   {
-                    "name": ["< RefSeq accession >"]
+                    "name": ["ancestral_sequence"]
                   }
                 ]
               }
@@ -27,7 +27,7 @@
           {
             "name": "Inferred root",
             "displayName": "Tree root",
-            "description": "Inferred root from ancestral traits.",
+            "description": "Inferred root by Nextclade",
             "criteria": [
               {
                 "node": [

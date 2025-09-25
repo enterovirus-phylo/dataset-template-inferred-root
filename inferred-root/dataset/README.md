@@ -1,3 +1,0 @@
-# Example dataset for < your virus >
-
-To be continued ...
