@@ -15,7 +15,7 @@ Based on the full genome sequence, this dataset uses the <...> reference sequenc
 
 ***Note:** The official RefSeq or reference sequence is substantially diverged from currently circulating strains. This is common for many enterovirus datasets, in contrast to some other virus datasets (e.g., seasonal influenza) where the reference is updated more frequently to match recent sequences.*
 
-To address this, we also provide an **Static ancestral root**: a phylogenetically reconstructed ancestral sequence representative of the diversity in this dataset, which can serve as an alternative reference for analyses and improve interpretation of recent strains.
+To address this, we also provide an **Static inferred ancestor**: a phylogenetically reconstructed ancestral sequence representative of the diversity in this dataset, which can serve as an alternative reference for analyses and improve interpretation of recent strains.
 
 ## Features
 
@@ -28,7 +28,7 @@ This dataset supports:
 
 ## Subgenogroups of Enterovirus <...>
 
-<...> is divided into subgenogroups A (A1-A2), B (B1–B3), and C. 
+<...> is divided into subgenogroups A, B, C, ... 
 
 These designations are based on phylogenetic structure and are widely used in molecular epidemiology, similar to subgenotype systems for other enteroviruses.  
 Unlike influenza (H1N1, H3N2) or SARS-CoV-2, there is no universal, standardized global lineage nomenclature for enteroviruses — naming follows conventions from published studies and surveillance practice.

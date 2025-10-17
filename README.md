@@ -138,6 +138,9 @@ This will:
 - Run Nextclade on the example sequences in `out-dataset/sequences.fasta`
 - Output results to `test_out/` (alignment, translations, summary TSV)
 
+### Labeling Mutations of Interest
+To label mutations of interest, execute the `mutLabels` rule as a standalone instance. They will be added to the `out-dataset/pathogen.json` file.
+
 ---
 
 ## Visualizing Your Custom Nextclade Dataset
