@@ -105,9 +105,6 @@ The `inferred-root/` directory contains a reproducible pipeline to infer a datas
 > [!NOTE]  
 > To skip the inferred root step, leave `ANCESTRAL_ROOT_INFERRENCE = False`.
 
-**Looking for a template?**  
-For other enterovirus types, see the [Nextclade Inferred Root Dataset Template](https://github.com/enterovirus-phylo/dataset-template-inferred-root).
-
 ---
 
 ### 5. Configure `auspice_config.json`
@@ -165,7 +162,7 @@ https://master.clades.nextstrain.org/?dataset-url=http://localhost:3000
 ## Author & Contact
 
 - Maintainers: Nadia Neuner-Jehle, Alejandra Gonzalez Sanchez, Emma B. Hodcroft ([hodcroftlab](https://github.com/hodcroftlab))
-- For questions or suggestions, please open an issue or email: eve-group[at]swisstph.ch
+- For questions or suggestions, please [open an issue](https://github.com/enterovirus-phylo/dataset-template-inferred-root/issues/new) or email: eve-group[at]swisstph.ch
 
 ---
 
