@@ -10,7 +10,7 @@ ROOTING =               "mid_point"  # alternative root using outgroup, e.g. the
 ID_FIELD=               "accession" # either accession or strain, used for meta-id-column in augur
 
 # Set the paths
-GFF_PATH =              "dataset/genome_annotation.gff3" # modified coords to match static inferred root
+GFF_PATH =              "dataset/genome_annotation.gff3" 
 PATHOGEN_JSON =         "dataset/pathogen.json"
 README_PATH =           "dataset/README.md"
 CHANGELOG_PATH =        "dataset/CHANGELOG.md"
@@ -24,13 +24,13 @@ INCLUDE_EXAMPLES =      "resources/include_examples.txt"
 REFINE_DROP =           "resources/dropped_refine.txt"
 COLORS =                "resources/colors.tsv"
 COLORS_SCHEMES =        "resources/color_schemes.tsv"
-ANCESTRAL_ROOT =        "resources/inferred-root.fasta"
+INFERRED_ANCESTOR =     "resources/inferred-root.fasta"
 
 FETCH_SEQUENCES = True
-ANCESTRAL_ROOT_INFERRENCE = True
+STATIC_ANCESTRAL_INFERRENCE = True
 
 onstart:
-    if ANCESTRAL_ROOT_INFERRENCE and not config.get("root_inference_confirmed", False):
+    if STATIC_ANCESTRAL_INFERRENCE and not config.get("static_inference_confirmed", False):
         print(f"""
         ╔══════════════════════════════════════════════════════════════╗
         ║                 ENTEROVIRUS ROOT INFERENCE                   ║
@@ -41,20 +41,25 @@ onstart:
         ║  • {SEQUENCES}                                      ║
         ║                                                              ║
         ║  To confirm, restart with:                                   ║
-        ║  snakemake -c 9 all --config root_inference_confirmed=true   ║
+        ║  snakemake -c 9 all --config static_inference_confirmed=true ║
         ╚══════════════════════════════════════════════════════════════╝
         """)
         sys.exit("Root inference requires confirmation. See message above.")
 
 onsuccess:
-    if ANCESTRAL_ROOT_INFERRENCE:
+    if STATIC_ANCESTRAL_INFERRENCE:
         print(f"""
-        • Enterovirus root inference completed successfully!
-        • Updated files:
-           • {ANCESTRAL_ROOT} (ancestral sequence)
+        Enterovirus root inference completed successfully!
+        Updated files:
+           • {INFERRED_ANCESTOR} (ancestral sequence)
            • results/metadata.tsv (merged metadata)
            • {SEQUENCES} (combined sequences with ancestral root)
         """)
+    else: print("Workflow finished, no ancestral root created.")
+
+onerror:
+    print("An error occurred. See detailed error message in terminal.")
+
 
 rule all:
     input:
@@ -62,7 +67,7 @@ rule all:
         augur_jsons = "test_out/",
         data = "dataset.zip",
         seqs = "results/example_sequences.fasta",
-        **({"root": ANCESTRAL_ROOT} if ANCESTRAL_ROOT_INFERRENCE else {})
+        **({"root": INFERRED_ANCESTOR} if STATIC_ANCESTRAL_INFERRENCE else {})
 
 
 if FETCH_SEQUENCES == True:
@@ -104,11 +109,11 @@ rule curate:
         rm metadata.tmp
         """
 
-if ANCESTRAL_ROOT_INFERRENCE == True:
-    rule root_inferrence:
+if STATIC_ANCESTRAL_INFERRENCE == True:
+    rule static_inferrence:
         message:
             """
-            Running inferred-root snakefile for inference of the ancestral root. 
+            Running "inferred-root" snakefile for inference of the ancestral root. 
             This reference will be included in the Nextclade reference tree.
             WARNING: This will overwrite your sequence & meta file!
             """
@@ -117,11 +122,11 @@ if ANCESTRAL_ROOT_INFERRENCE == True:
             dataset_path = "dataset",
             meta = rules.curate.output.metadata,
             seq = SEQUENCES,
-            meta_ancestral = "resources/static_inferred_root_metadata.tsv",
+            meta_ancestral = "resources/static_inferred_metadata.tsv", #TODO: create dummy metadata for ancestral sequence
         params:
             strain_id_field = ID_FIELD,
         output:
-            inref = ANCESTRAL_ROOT,
+            inref = INFERRED_ANCESTOR,
             seq = "results/sequences_with_ancestral.fasta",
             meta = "results/metadata_with_ancestral.tsv",
         shell:
@@ -143,7 +148,7 @@ if ANCESTRAL_ROOT_INFERRENCE == True:
                 --metadata-id-columns {params.strain_id_field} \
                 --output-metadata {output.meta}
             
-            echo "Root inference completed successfully!"
+            echo "Static ancestral inference completed successfully!"
             """
 
 rule index_sequences:
@@ -152,7 +157,7 @@ rule index_sequences:
         Creating an index of sequence composition for filtering
         """
     input:
-        sequences = "results/sequences_with_ancestral.fasta" if ANCESTRAL_ROOT_INFERRENCE else SEQUENCES,
+        sequences = "results/sequences_with_ancestral.fasta" if STATIC_ANCESTRAL_INFERRENCE else SEQUENCES,
     output:
         sequence_index = "results/sequence_index.tsv"
     shell:
@@ -183,9 +188,9 @@ rule filter:
     Only take sequences longer than {MIN_LENGTH}
     """
     input:
-        sequences = "results/sequences_with_ancestral.fasta" if ANCESTRAL_ROOT_INFERRENCE else SEQUENCES,
+        sequences = "results/sequences_with_ancestral.fasta" if STATIC_ANCESTRAL_INFERRENCE else SEQUENCES,
         sequence_index = rules.index_sequences.output.sequence_index,
-        metadata = "results/metadata_with_ancestral.tsv" if ANCESTRAL_ROOT_INFERRENCE else rules.curate.output.metadata,
+        metadata = "results/metadata_with_ancestral.tsv" if STATIC_ANCESTRAL_INFERRENCE else rules.curate.output.metadata,
         include = rules.add_reference_to_include.output,
     output:
         filtered_sequences = "results/filtered_sequences_raw.fasta",
@@ -294,7 +299,7 @@ rule exclude:
     input:
         sequences = rules.align.output.alignment,
         sequence_index = rules.index_sequences.output.sequence_index,
-        metadata = "results/metadata_with_ancestral.tsv" if ANCESTRAL_ROOT_INFERRENCE else rules.curate.output.metadata,
+        metadata = "results/metadata_with_ancestral.tsv" if STATIC_ANCESTRAL_INFERRENCE else rules.curate.output.metadata,
         exclude = EXCLUDE,
         outliers = rules.get_outliers.output.outliers,
         refine = REFINE_DROP,
@@ -541,6 +546,24 @@ rule test:
             --input-dataset {input.dataset} \
             --output-all {output.output} \
             {input.sequences}
+        """
+
+rule mutLabels:
+    input: 
+        json = PATHOGEN_JSON,
+        tsv = "test_out/nextclade.tsv",
+    params:
+        "results/virus_properties.json"
+    output:
+        "out-dataset/pathogen.json"
+    shell:
+        """
+        python3 scripts/generate_virus_properties.py
+        jq --slurpfile v {params} \
+           '.mutLabels.nucMutLabelMap = $v[0].nucMutLabelMap |
+            .mutLabels.nucMutLabelMapReverse = $v[0].nucMutLabelMapReverse' \
+           {input.json} > {output}
+        zip -rj dataset.zip  out-dataset/*
         """
 
 rule clean:

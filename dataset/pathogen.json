@@ -22,7 +22,8 @@
         "kmerDistance": 25,
         "minMatchLength": 30,
         "allowedMismatches": 15,
-        "minLength": 30
+        "minLength": 100,
+        "minSeedCover": 0.30
     },
   "defaultCds": "VP1",
   "compatibility": {

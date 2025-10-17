@@ -17,9 +17,9 @@
         },
         "search": [
           {
-            "name": "Static ancestral root",
-            "displayName": "Static ancestral root",
-            "description": "Inferred ancestral root [not changing]",
+            "name": "InferredAncestor",
+            "displayName": "Static Inferred Ancestor",
+            "description": "Precomputed ancestral sequence (static)",
             "criteria": [
               {
                 "node": [
@@ -33,7 +33,7 @@
           {
             "name": "Inferred root",
             "displayName": "Tree root",
-            "description": "Inferred root by Nextclade",
+            "description": "Inferred ancestral root (regenerated on each run)",
             "criteria": [
               {
                 "node": [
