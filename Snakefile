@@ -1,4 +1,4 @@
-# Set the parameters
+u# Set the parameters
 REFERENCE_ACCESSION =   "<accession>"
 TAXON_ID =              <...>
 GENES =                 ["VP4", "VP2", "VP3", "VP1", "2A", "2B", "2C", "3A", "3B", "3C", "3D"]
@@ -14,6 +14,7 @@ GFF_PATH =              "dataset/genome_annotation.gff3"
 PATHOGEN_JSON =         "dataset/pathogen.json"
 README_PATH =           "dataset/README.md"
 CHANGELOG_PATH =        "dataset/CHANGELOG.md"
+REFERENCE_PATH =        "dataset/reference.fasta"
 AUSPICE_CONFIG =        "resources/auspice_config.json"
 EXCLUDE =               "resources/exclude.txt"
 SEQUENCES =             "data/sequences.fasta"
@@ -25,8 +26,7 @@ REFINE_DROP =           "resources/dropped_refine.txt"
 COLORS =                "resources/colors.tsv"
 COLORS_SCHEMES =        "resources/color_schemes.tsv"
 INFERRED_ANCESTOR =     "resources/inferred-root.fasta"
-REFERENCE_PATH =        "dataset/reference.fasta"
-GENBANK_PATH =          "dataset/reference.gbk"
+GENBANK_PATH =          "resources/reference.gbk"
 
 FETCH_SEQUENCES = True
 STATIC_ANCESTRAL_INFERRENCE = True
