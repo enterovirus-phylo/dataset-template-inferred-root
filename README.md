@@ -99,7 +99,7 @@ The `inferred-root/` directory contains a reproducible pipeline to infer a datas
 
 - **See:** [`inferred-root/README.md`](inferred-root/README.md) for details.
 - To enable, set `ANCESTRAL_ROOT_INFERRENCE = True` in your config and run with  
-  `--config root_inference_confirmed=true`.
+  `--config static_inference_confirmed=true`.
 - Without confirmation, the workflow will halt and display an opt-in message.
 
 > [!NOTE]  
