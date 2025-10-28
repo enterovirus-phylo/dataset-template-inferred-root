@@ -25,6 +25,8 @@ REFINE_DROP =           "resources/dropped_refine.txt"
 COLORS =                "resources/colors.tsv"
 COLORS_SCHEMES =        "resources/color_schemes.tsv"
 INFERRED_ANCESTOR =     "resources/inferred-root.fasta"
+REFERENCE_PATH =        "dataset/reference.fasta"
+GENBANK_PATH =          "dataset/reference.gbk"
 
 FETCH_SEQUENCES = True
 STATIC_ANCESTRAL_INFERRENCE = True
