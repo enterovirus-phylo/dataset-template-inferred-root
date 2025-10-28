@@ -64,7 +64,7 @@ See the [Nextclade pathogen config documentation](https://docs.nextstrain.org/pr
 
 ### 3. Prepare GenBank Reference
 
-Copy your GenBank file to `resources/reference.gb`.  
+Copy your GenBank file to `resources/reference.gbk`.  
 Edit protein names and features if necessary for your use case.
 
 ---
