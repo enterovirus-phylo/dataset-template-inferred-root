@@ -2,10 +2,10 @@ u# Set the parameters
 REFERENCE_ACCESSION =   "<accession>"
 TAXON_ID =              <...>
 GENES =                 ["VP4", "VP2", "VP3", "VP1", "2A", "2B", "2C", "3A", "3B", "3C", "3D"]
-ALLOWED_DIVERGENCE =    "1000" # was 
-MIN_DATE =              "1990-01-01"
+ALLOWED_DIVERGENCE =    "3000" # TODO: lower this threshold to exclude outliers
+MIN_DATE =              "1960-01-01"
 MIN_LENGTH =            "6000" # was 6000 for whole genome build on Nextstrain
-MAX_SEQS =              "1000" #TODO: set to 10000 for testing
+MAX_SEQS =              "10000" #TODO: set lower to subsample the tree
 ROOTING =               "mid_point"  # alternative root using outgroup, e.g. the reference "AY426531.1"
 ID_FIELD=               "accession" # either accession or strain, used for meta-id-column in augur
 
