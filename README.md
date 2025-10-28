@@ -130,7 +130,7 @@ This enables three reference options for mutation calling:
 To generate the Auspice JSON and a Nextclade example dataset:
 
 ```bash
-snakemake --cores 9 all --config root_inference_confirmed=true
+snakemake --cores 9 all --config static_inference_confirmed=true
 ```
 
 This will:
