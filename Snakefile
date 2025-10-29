@@ -1,11 +1,11 @@
-# Set the parameters
+u# Set the parameters
 REFERENCE_ACCESSION =   "<accession>"
 TAXON_ID =              <...>
 GENES =                 ["VP4", "VP2", "VP3", "VP1", "2A", "2B", "2C", "3A", "3B", "3C", "3D"]
-ALLOWED_DIVERGENCE =    "1000" # was 
-MIN_DATE =              "1990-01-01"
+ALLOWED_DIVERGENCE =    "3000" # TODO: lower this threshold to exclude outliers
+MIN_DATE =              "1960-01-01"
 MIN_LENGTH =            "6000" # was 6000 for whole genome build on Nextstrain
-MAX_SEQS =              "1000" #TODO: set to 10000 for testing
+MAX_SEQS =              "10000" #TODO: set lower to subsample the tree
 ROOTING =               "mid_point"  # alternative root using outgroup, e.g. the reference "AY426531.1"
 ID_FIELD=               "accession" # either accession or strain, used for meta-id-column in augur
 
@@ -14,17 +14,18 @@ GFF_PATH =              "dataset/genome_annotation.gff3"
 PATHOGEN_JSON =         "dataset/pathogen.json"
 README_PATH =           "dataset/README.md"
 CHANGELOG_PATH =        "dataset/CHANGELOG.md"
+REFERENCE_PATH =        "dataset/reference.fasta"
 AUSPICE_CONFIG =        "resources/auspice_config.json"
 EXCLUDE =               "resources/exclude.txt"
 SEQUENCES =             "data/sequences.fasta"
 METADATA =              "data/metadata.tsv"
 CLADES =                "resources/clades.tsv"
 ACCESSION_STRAIN =      "resources/accession_strain.tsv"
-INCLUDE_EXAMPLES =      "resources/include_examples.txt"
-REFINE_DROP =           "resources/dropped_refine.txt"
+INCLUDE_EXAMPLES =      "resources/include_examples.txt" # Specify sequences to include in examples
 COLORS =                "resources/colors.tsv"
 COLORS_SCHEMES =        "resources/color_schemes.tsv"
 INFERRED_ANCESTOR =     "resources/inferred-root.fasta"
+GENBANK_PATH =          "resources/reference.gbk"
 
 FETCH_SEQUENCES = True
 STATIC_ANCESTRAL_INFERRENCE = True
@@ -302,7 +303,6 @@ rule exclude:
         metadata = "results/metadata_with_ancestral.tsv" if STATIC_ANCESTRAL_INFERRENCE else rules.curate.output.metadata,
         exclude = EXCLUDE,
         outliers = rules.get_outliers.output.outliers,
-        refine = REFINE_DROP,
         example = INCLUDE_EXAMPLES,
 
     params:
@@ -318,7 +318,7 @@ rule exclude:
             --sequence-index {input.sequence_index} \
             --metadata {input.metadata} \
             --metadata-id-columns {params.strain_id_field} \
-            --exclude {input.exclude} {input.outliers} {input.refine} {input.example} \
+            --exclude {input.exclude} {input.outliers} {input.example} \
             --output-sequences {output.filtered_sequences} \
             --output-metadata {output.filtered_metadata} \
             --output-strains {output.strains}

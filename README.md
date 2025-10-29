@@ -64,7 +64,7 @@ See the [Nextclade pathogen config documentation](https://docs.nextstrain.org/pr
 
 ### 3. Prepare GenBank Reference
 
-Copy your GenBank file to `resources/reference.gb`.  
+Copy your GenBank file to `resources/reference.gbk`.  
 Edit protein names and features if necessary for your use case.
 
 ---
@@ -99,7 +99,7 @@ The `inferred-root/` directory contains a reproducible pipeline to infer a datas
 
 - **See:** [`inferred-root/README.md`](inferred-root/README.md) for details.
 - To enable, set `ANCESTRAL_ROOT_INFERRENCE = True` in your config and run with  
-  `--config root_inference_confirmed=true`.
+  `--config static_inference_confirmed=true`.
 - Without confirmation, the workflow will halt and display an opt-in message.
 
 > [!NOTE]  
@@ -130,7 +130,7 @@ This enables three reference options for mutation calling:
 To generate the Auspice JSON and a Nextclade example dataset:
 
 ```bash
-snakemake --cores 9 all --config root_inference_confirmed=true
+snakemake --cores 9 all --config static_inference_confirmed=true
 ```
 
 This will:
