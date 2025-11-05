@@ -1,66 +1,53 @@
-u# Set the parameters
-REFERENCE_ACCESSION =   "<accession>"
-TAXON_ID =              <...>
-GENES =                 ["VP4", "VP2", "VP3", "VP1", "2A", "2B", "2C", "3A", "3B", "3C", "3D"]
-ALLOWED_DIVERGENCE =    "3000" # TODO: lower this threshold to exclude outliers
-MIN_DATE =              "1960-01-01"
-MIN_LENGTH =            "6000" # was 6000 for whole genome build on Nextstrain
-MAX_SEQS =              "10000" #TODO: set lower to subsample the tree
-ROOTING =               "mid_point"  # alternative root using outgroup, e.g. the reference "AY426531.1"
-ID_FIELD=               "accession" # either accession or strain, used for meta-id-column in augur
+include: "scripts/workflow_messages.snkm"
 
-# Set the paths
-GFF_PATH =              "dataset/genome_annotation.gff3" 
-PATHOGEN_JSON =         "dataset/pathogen.json"
-README_PATH =           "dataset/README.md"
-CHANGELOG_PATH =        "dataset/CHANGELOG.md"
-REFERENCE_PATH =        "dataset/reference.fasta"
-AUSPICE_CONFIG =        "resources/auspice_config.json"
-EXCLUDE =               "resources/exclude.txt"
-SEQUENCES =             "data/sequences.fasta"
-METADATA =              "data/metadata.tsv"
-CLADES =                "resources/clades.tsv"
-ACCESSION_STRAIN =      "resources/accession_strain.tsv"
-INCLUDE_EXAMPLES =      "resources/include_examples.txt" # Specify sequences to include in examples
-COLORS =                "resources/colors.tsv"
-COLORS_SCHEMES =        "resources/color_schemes.tsv"
-INFERRED_ANCESTOR =     "resources/inferred-root.fasta"
-GENBANK_PATH =          "resources/reference.gbk"
+# -----------------------------------------------------------------------------
+# Parameters and Settings
+# -----------------------------------------------------------------------------
+# Define general parameters, filtering thresholds, and workflow options.
 
-FETCH_SEQUENCES = True
-STATIC_ANCESTRAL_INFERRENCE = True
+REFERENCE_ACCESSION =   "<accession>"   # define the reference sequence
+TAXON_ID =              <...>           # define the taxon id of your virus 
+GENES =                 ["VP4", "VP2", "VP3", "VP1", "2A", "2B", "2C", "3A", "3B", "3C", "3D"] # specify the genes that will be included. The names must match the annotation & reference gene/product names
+ALLOWED_DIVERGENCE =    "3000"          # TODO: lower this threshold to exclude outliers
+MIN_DATE =              "1960-01-01"    # all sequences collected beforehand will be excluded
+MIN_LENGTH =            "6000"          # is 6000 bp for whole genome build on Nextstrain
+MAX_SEQS =              "10000"         # TODO: set lower to subsample the tree
+ROOTING =               "mid_point"     # alternative root using outgroup, e.g. the reference "AY426531.1"
+ID_FIELD=               "accession"     # either accession or strain, used for meta-id-column in augur
 
-onstart:
-    if STATIC_ANCESTRAL_INFERRENCE and not config.get("static_inference_confirmed", False):
-        print(f"""
-        ╔══════════════════════════════════════════════════════════════╗
-        ║                 ENTEROVIRUS ROOT INFERENCE                   ║
-        ║                                                              ║
-        ║  This workflow will infer an ancestral root sequence for     ║
-        ║  your enterovirus dataset and overwrite:                     ║
-        ║  • results/metadata.tsv                                      ║
-        ║  • {SEQUENCES}                                      ║
-        ║                                                              ║
-        ║  To confirm, restart with:                                   ║
-        ║  snakemake -c 9 all --config static_inference_confirmed=true ║
-        ╚══════════════════════════════════════════════════════════════╝
-        """)
-        sys.exit("Root inference requires confirmation. See message above.")
+FETCH_SEQUENCES = True                  # If True, fetches the latest sequences and metadata from NCBI (via datasets/ingest).
+STATIC_ANCESTRAL_INFERRENCE = False     # If True, runs a workflow to infer an ancestral sequence as an alternative reference
 
-onsuccess:
-    if STATIC_ANCESTRAL_INFERRENCE:
-        print(f"""
-        Enterovirus root inference completed successfully!
-        Updated files:
-           • {INFERRED_ANCESTOR} (ancestral sequence)
-           • results/metadata.tsv (merged metadata)
-           • {SEQUENCES} (combined sequences with ancestral root)
-        """)
-    else: print("Workflow finished, no ancestral root created.")
+# -----------------------------------------------------------------------------
+# Paths
+# -----------------------------------------------------------------------------
+# Define all input and resource file locations.
 
-onerror:
-    print("An error occurred. See detailed error message in terminal.")
+SEQUENCES =             "data/sequences.fasta"              # Input nucleotide sequences in FASTA format.
+METADATA =              "data/metadata.tsv"                 # Associated sequence metadata in TSV format.
 
+GFF_PATH =              "dataset/genome_annotation.gff3"    # Reference genome annotation in GFF3 format.
+PATHOGEN_JSON =         "dataset/pathogen.json"             # Pathogen definition file for Nextclade QC and alignment.
+README_PATH =           "dataset/README.md"                 # Dataset description and usage notes.
+CHANGELOG_PATH =        "dataset/CHANGELOG.md"              # Log of dataset releases and version history.
+REFERENCE_PATH =        "dataset/reference.fasta"           # Reference genome sequence in FASTA format.
+
+AUSPICE_CONFIG =        "resources/auspice_config.json"     # Configuration for Auspice visualization.
+EXCLUDE =               "resources/exclude.txt"             # List of sequences to exclude from the build.
+CLADES =                "resources/clades.tsv"              # Clade definitions for Nextclade/Nextstrain builds.
+ACCESSION_STRAIN =      "resources/accession_strain.tsv"    # Optional mapping of accession to corrected strain names
+INCLUDE_EXAMPLES =      "resources/include_examples.txt"    # List of sequences to include in example sequences (rule subsample_example_sequences)
+COLORS =                "resources/colors.tsv"              # Color assignments for metadata fields.
+COLORS_SCHEMES =        "resources/color_schemes.tsv"       # Preset color schemes for Auspice.
+GENBANK_PATH =          "resources/reference.gbk"           # Reference genome in GenBank format (for gene mapping)
+INFERRED_ANCESTOR =     "resources/inferred-root.fasta"     # Inferred ancestral sequence (used as alternative reference)
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# Workflow Rules
+# -----------------------------------------------------------------------------
+# Define the main workflow steps and dependencies.
+# Each rule represents a key stage in the dataset build.
 
 rule all:
     input:
