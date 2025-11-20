@@ -12,11 +12,12 @@ ALLOWED_DIVERGENCE =    "3000"          # TODO: lower this threshold to exclude 
 MIN_DATE =              "1960-01-01"    # all sequences collected beforehand will be excluded
 MIN_LENGTH =            "6000"          # is 6000 bp for whole genome build on Nextstrain
 MAX_SEQS =              "10000"         # TODO: set lower to subsample the tree
-ROOTING =               "mid_point"     # alternative root using outgroup, e.g. the reference "AY426531.1"
+ROOTING =               "ancestral_sequence"  # mid_point, outgroup, reference, ancestral sequence
 ID_FIELD=               "accession"     # either accession or strain, used for meta-id-column in augur
 
-FETCH_SEQUENCES = True                  # If True, fetches the latest sequences and metadata from NCBI (via datasets/ingest).
-STATIC_ANCESTRAL_INFERRENCE = False     # If True, runs a workflow to infer an ancestral sequence as an alternative reference
+FETCH_SEQUENCES = True              # whether to fetch sequences from NCBI Virus via ingest workflow
+STATIC_ANCESTRAL_INFERRENCE = True  # whether to use the static inferred ancestral sequence
+INFERRENCE_RERUN = False            # whether to rerun the inference of the ancestral sequence worfkflow (inferred-root)
 
 # -----------------------------------------------------------------------------
 # Paths
@@ -25,6 +26,9 @@ STATIC_ANCESTRAL_INFERRENCE = False     # If True, runs a workflow to infer an a
 
 SEQUENCES =             "data/sequences.fasta"              # Input nucleotide sequences in FASTA format.
 METADATA =              "data/metadata.tsv"                 # Associated sequence metadata in TSV format.
+
+INFERRED_SEQ_PATH = "results/sequences_with_ancestral.fasta" if STATIC_ANCESTRAL_INFERRENCE else SEQUENCES
+INFERRED_META_PATH = "results/metadata_with_ancestral.tsv" if STATIC_ANCESTRAL_INFERRENCE else "results/metadata.tsv"
 
 GFF_PATH =              "dataset/genome_annotation.gff3"    # Reference genome annotation in GFF3 format.
 PATHOGEN_JSON =         "dataset/pathogen.json"             # Pathogen definition file for Nextclade QC and alignment.
@@ -42,6 +46,8 @@ COLORS_SCHEMES =        "resources/color_schemes.tsv"       # Preset color schem
 GENBANK_PATH =          "resources/reference.gbk"           # Reference genome in GenBank format (for gene mapping)
 INFERRED_ANCESTOR =     "resources/inferred-root.fasta"     # Inferred ancestral sequence (used as alternative reference)
 # -----------------------------------------------------------------------------
+
+configfile: PATHOGEN_JSON
 
 # -----------------------------------------------------------------------------
 # Workflow Rules
@@ -97,64 +103,6 @@ rule curate:
         rm metadata.tmp
         """
 
-if STATIC_ANCESTRAL_INFERRENCE == True:
-    rule static_inferrence:
-        message:
-            """
-            Running "inferred-root" snakefile for inference of the ancestral root. 
-            This reference will be included in the Nextclade reference tree.
-            WARNING: This will overwrite your sequence & meta file!
-            """
-        input:
-            dir = "inferred-root",
-            dataset_path = "dataset",
-            meta = rules.curate.output.metadata,
-            seq = SEQUENCES,
-            meta_ancestral = "resources/static_inferred_metadata.tsv", #TODO: create dummy metadata for ancestral sequence
-        params:
-            strain_id_field = ID_FIELD,
-        output:
-            inref = INFERRED_ANCESTOR,
-            seq = "results/sequences_with_ancestral.fasta",
-            meta = "results/metadata_with_ancestral.tsv",
-        shell:
-            """
-            # Run the inferred-root snakefile
-            echo "Running inferred-root workflow..."
-            cd {input.dir} 
-            snakemake --cores 9 all
-            cd ../
-
-            # Combine sequences (fixed the typo)
-            echo "Combining sequences with ancestral root..."
-            cat {input.seq} {output.inref} > {output.seq}
-
-            # Merge metadata
-            echo "Merging metadata..."
-            augur merge \
-                --metadata metadata={input.meta} ancestral={input.meta_ancestral} \
-                --metadata-id-columns {params.strain_id_field} \
-                --output-metadata {output.meta}
-            
-            echo "Static ancestral inference completed successfully!"
-            """
-
-rule index_sequences:
-    message:
-        """
-        Creating an index of sequence composition for filtering
-        """
-    input:
-        sequences = "results/sequences_with_ancestral.fasta" if STATIC_ANCESTRAL_INFERRENCE else SEQUENCES,
-    output:
-        sequence_index = "results/sequence_index.tsv"
-    shell:
-        """
-        augur index \
-            --sequences {input.sequences} \
-            --output {output.sequence_index}
-        """
-
 rule add_reference_to_include:
     """
     Create an include file for augur filter
@@ -170,15 +118,77 @@ rule add_reference_to_include:
         echo ancestral_sequence >> {output}
         """
 
+if STATIC_ANCESTRAL_INFERRENCE and INFERRENCE_RERUN:
+    rule static_inferrence:
+        message:
+            """
+            Running "inferred-root" snakefile for inference of the ancestral root. 
+            This reference will be included in the Nextclade reference tree.
+            WARNING: This will overwrite your {output.seq} & {output.meta} files!
+            """
+        input:
+            dir = "inferred-root",
+            dataset_path = "dataset",
+            meta = rules.curate.output.metadata,
+            seq = SEQUENCES,
+            meta_ancestral = "resources/static_inferred_metadata.tsv",
+            include = "results/include.txt"
+        params:
+            strain_id_field = ID_FIELD,
+        output:
+            inref = INFERRED_ANCESTOR,
+            seq = INFERRED_SEQ_PATH,
+            meta = INFERRED_META_PATH,
+        threads: workflow.cores
+        shell:
+            r"""
+            set -euo pipefail
+
+            echo "Cleaning previous results..."
+            rm -rf {input.dir}/results/* {input.dir}/resources/inferred-root.fasta
+
+            echo "Running inferred-root workflow..."
+            cd {input.dir}
+            snakemake --cores {threads} all_sub
+            cd - > /dev/null
+
+            echo "Combining sequences with ancestral root..."
+            cat {input.seq} {output.inref} > {output.seq}
+
+            echo "Merging metadata..."
+            augur merge \
+                --metadata metadata={input.meta} ancestral={input.meta_ancestral} \
+                --metadata-id-columns {params.strain_id_field} \
+                --output-metadata {output.meta}
+
+            echo "Static ancestral inference completed successfully!"
+            """
+
+rule index_sequences:
+    message:
+        """
+        Creating an index of sequence composition for filtering
+        """
+    input:
+        sequences = INFERRED_SEQ_PATH,
+    output:
+        sequence_index = "results/sequence_index.tsv"
+    shell:
+        """
+        augur index \
+            --sequences {input.sequences} \
+            --output {output.sequence_index}
+        """
+
 rule filter:
     """
     Exclude sequences from before {MIN_DATE} and subsample to {MAX_SEQS} sequences.
     Only take sequences longer than {MIN_LENGTH}
     """
     input:
-        sequences = "results/sequences_with_ancestral.fasta" if STATIC_ANCESTRAL_INFERRENCE else SEQUENCES,
+        sequences = INFERRED_SEQ_PATH,
         sequence_index = rules.index_sequences.output.sequence_index,
-        metadata = "results/metadata_with_ancestral.tsv" if STATIC_ANCESTRAL_INFERRENCE else rules.curate.output.metadata,
+        metadata = INFERRED_META_PATH,
         include = rules.add_reference_to_include.output,
     output:
         filtered_sequences = "results/filtered_sequences_raw.fasta",
@@ -187,7 +197,7 @@ rule filter:
         min_date="" if MIN_DATE == "" else "--min-date " + MIN_DATE,
         min_length="" if MIN_LENGTH == "" else "--min-length " + MIN_LENGTH,
         max_seqs=MAX_SEQS,
-        categories = "country year", #TODO: add subsampling per category?
+        # categories = "country year", #TODO: add subsampling per category?
         strain_id_field = ID_FIELD,
     shell:
         """
@@ -218,16 +228,17 @@ rule align:
         tsv = "results/nextclade.tsv",
     params:
         translation_template = lambda w: "results/translations/cds_{cds}.translation.fasta",
-        penalty_gap_extend = 2, #make longer gaps more costly - default is 0
-        penalty_gap_open = 20,  #make gaps more expensive relative to mismatches - default is 13
-        penalty_gap_open_in_frame = 30, #make gaps more expensive relative to mismatches - default is 7
-        penalty_gap_open_out_of_frame = 23, #make out of frame gaps more expensive - default is 8 # prev was 19
-        kmer_length = 8, #reduce to find more matches - default is 10
-        kmer_distance = 25, #reduce to try more seeds - default is 50
-        min_match_length = 30, #reduce to keep more seeds - default is 40
-        allowed_mismatches = 15, #increase to keep more seeds - default is 8
-        min_length = 100, # min_length - default is 100
-        #cost of a mutation is 4
+        penalty_gap_extend = config["alignmentParams"]["penalityGapExtend"],
+        penalty_gap_open = config["alignmentParams"]["penaltyGapOpen"],
+        penalty_gap_open_in_frame = config["alignmentParams"]["penaltyGapOpenInFrame"],
+        penalty_gap_open_out_of_frame = config["alignmentParams"]["penaltyGapOpenOutOfFrame"],
+        kmer_length = config["alignmentParams"]["kmerLength"],
+        kmer_distance = config["alignmentParams"]["kmerDistance"],
+        min_match_length = config["alignmentParams"]["minMatchLength"],
+        allowed_mismatches = config["alignmentParams"]["allowedMismatches"],
+        min_length = config["alignmentParams"]["minLength"],
+        gap_alignment_side = config["alignmentParams"]["gapAlignmentSide"],  
+        min_seed_cover = config["alignmentParams"]["minSeedCover"],
     shell:
         """
         nextclade3 run \
@@ -235,15 +246,19 @@ rule align:
         {input.sequences} \
         --input-ref {input.reference} \
         --input-annotation {input.annotation} \
+        --alignment-preset high-diversity \
         --penalty-gap-open {params.penalty_gap_open} \
         --penalty-gap-extend {params.penalty_gap_extend} \
         --penalty-gap-open-in-frame {params.penalty_gap_open_in_frame} \
         --penalty-gap-open-out-of-frame {params.penalty_gap_open_out_of_frame} \
+        --gap-alignment-side {params.gap_alignment_side} \
         --kmer-length {params.kmer_length} \
         --kmer-distance {params.kmer_distance} \
         --min-match-length {params.min_match_length} \
         --allowed-mismatches {params.allowed_mismatches} \
+        --min-seed-cover {params.min_seed_cover} \
         --min-length {params.min_length} \
+        --max-alignment-attempts 5 \
         --include-reference false \
         --output-tsv {output.tsv} \
         --output-translations {params.translation_template} \
@@ -287,7 +302,7 @@ rule exclude:
     input:
         sequences = rules.align.output.alignment,
         sequence_index = rules.index_sequences.output.sequence_index,
-        metadata = "results/metadata_with_ancestral.tsv" if STATIC_ANCESTRAL_INFERRENCE else rules.curate.output.metadata,
+        metadata = INFERRED_META_PATH,
         exclude = EXCLUDE,
         outliers = rules.get_outliers.output.outliers,
         example = INCLUDE_EXAMPLES,
@@ -311,7 +326,6 @@ rule exclude:
             --output-strains {output.strains}
         """
 
-
 rule tree:
     message:
         """
@@ -321,7 +335,7 @@ rule tree:
         alignment = rules.exclude.output.filtered_sequences,
     output:
         tree = "results/tree_raw.nwk",
-    threads: 9
+    threads: workflow.cores
     shell:
         """
         augur tree \
@@ -472,8 +486,11 @@ rule export:
 
 rule subsample_example_sequences:
     input:
-        all_sequences = SEQUENCES,
-        metadata = rules.curate.output.metadata,
+        all_sequences = INFERRED_SEQ_PATH,
+        metadata = INFERRED_META_PATH,
+        incl_examples = INCLUDE_EXAMPLES,
+        exclude = EXCLUDE,
+        outliers = rules.get_outliers.output.outliers,
     output:
         example_sequences = "results/example_sequences.fasta",
     params:
@@ -485,6 +502,8 @@ rule subsample_example_sequences:
             --metadata {input.metadata} \
             --metadata-id-columns {params.strain_id_field} \
             --min-date 2015 --group-by year --subsample-max-sequences 30  \
+            --include {input.incl_examples} \
+            --exclude {input.exclude} {input.outliers} \
             --exclude-ambiguous-dates-by year \
             --probabilistic-sampling \
             --output-sequences {output.example_sequences}
@@ -536,22 +555,43 @@ rule test:
         """
 
 rule mutLabels:
-    input: 
+    input:
+        table = "results/nextclade.tsv",
+        clade = "results/clades_metadata.tsv",
         json = PATHOGEN_JSON,
-        tsv = "test_out/nextclade.tsv",
     params:
-        "results/virus_properties.json"
+        min_proportion = 0.2,
+        high_threshold_proportion = 0.70,
+        clades_high_threshold = ["clade1","clade2","..."],
+        clades_to_drop = ["unassigned"],
     output:
-        "out-dataset/pathogen.json"
+        clade_meta = "results/clades_mut_metadata.tsv",
+        properties = "results/virus_properties.json",
+        json = "out-dataset/pathogen.json"
     shell:
         """
-        python3 scripts/generate_virus_properties.py
-        jq --slurpfile v {params} \
+        augur merge \
+            --metadata meta={input.table} clade={input.clade} \
+            --metadata-id-columns meta=seqName clade=accession \
+            --output-metadata {output.clade_meta}
+
+        python3 scripts/generate_virus_properties.py \
+            --clade_meta {output.clade_meta} \
+            --properties {output.properties} \
+            --min-prop {params.min_proportion} \
+            --high-min-prop {params.high_threshold_proportion} \
+            --high-prop-clades "{params.clades_high_threshold}" \
+            --exclude-clades "{params.clades_to_drop}"
+
+
+        jq --slurpfile v {output.properties} \
            '.mutLabels.nucMutLabelMap = $v[0].nucMutLabelMap |
             .mutLabels.nucMutLabelMapReverse = $v[0].nucMutLabelMapReverse' \
-           {input.json} > {output}
+           {input.json} > {output.json}
+
         zip -rj dataset.zip  out-dataset/*
         """
+
 
 rule clean:
     shell:
